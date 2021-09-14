@@ -1,15 +1,19 @@
-// create an express app
-const express = require("express")
-const app = express()
+const express = require("express");
+const app = express();
+const opentype = require("opentype.js");
+const port = 80;
+const fontURL = "fonts/400.ttf";
 
-// use the express-static middleware
-app.use(express.static("public"))
+app.get("/", (req, res) => {
+    opentype.load(fontURL, function (err, font) {
+        res.set('Content-Type', 'image/svg+xml');
+        const path = font.getPath("Hello, World!", 0, 150, 72);
+        // console.log(path.toSVG());
+        // res.send("Hello World!");
+        res.end('<svg xmlns="http://www.w3.org/2000/svg">' + path.toSVG() + '</svg>');
+    });
+});
 
-// define the first route
-app.get("/", function (req, res) {
-  res.send("<h1>Hello World!</h1>")
-})
-
-// start the server listening for requests
-app.listen(process.env.PORT || 80, 
-	() => console.log("Server is running..."));
+app.listen(port, () => {
+    console.log(`Example app listening at http://localhost:${port}`);
+});
