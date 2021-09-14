@@ -1,1 +1,1 @@
-web: node basic.js
+web: node app.js
