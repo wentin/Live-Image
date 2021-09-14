@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
-const opentype = require("opentype.js");
 const port = 80;
+const opentype = require("opentype.js");
 const fontURL = "fonts/400.ttf";
 
 app.get("/", (req, res) => {
