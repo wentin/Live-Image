@@ -52,17 +52,37 @@ app.get("/", function (req, res) {
             context.textAlign = "left";
             context.textBaseline = "top";
 
-            const text = "Hello, World!";
-
             opentype.load(fontURL, function (err, font) {
-                const path = font.getPath(text, 620, 242, 56);
-                path.fill = "#4F5720";
-                path.draw(context);
+                axios({
+                    url: "https://api.hashnode.com/",
+                    method: "post",
+                    headers: {
+                        Authorization: "<a3dba591-d040-487b-9046-e1a038f3e248>",
+                    },
+                    data: {
+                        query: `
+                        {
+                            user(username: "wentin") {
+                                publication {
+                                    posts(page: 0) {
+                                        title
+                                    }
+                                }
+                            }
+                        }`,
+                    },
+                }).then((result) => {
+                    const text =
+                        result.data.data.user.publication.posts[0].title;
+                    const path = font.getPath(text, 620, 242, 56);
+                    path.fill = "#4F5720";
+                    path.draw(context);
 
-                const type = "image/png";
-                const buffer = canvas.toBuffer(type);
-                res.set("Content-Type", type);
-                res.end(buffer, "binary");
+                    const type = "image/png";
+                    const buffer = canvas.toBuffer(type);
+                    res.set("Content-Type", type);
+                    res.end(buffer, "binary");
+                });
             });
         });
     });
