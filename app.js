@@ -53,13 +53,17 @@ app.get("/", function (req, res) {
             context.textBaseline = "top";
 
             const text = "Hello, World!";
-            context.fillStyle = "#4F5720";
-            context.fillText(text, 620, 180);
 
-            const type = "image/png";
-            const buffer = canvas.toBuffer(type);
-            res.set("Content-Type", type);
-            res.end(buffer, "binary");
+            opentype.load(fontURL, function (err, font) {
+                const path = font.getPath(text, 620, 242, 56);
+                path.fill = "#4F5720";
+                path.draw(context);
+
+                const type = "image/png";
+                const buffer = canvas.toBuffer(type);
+                res.set("Content-Type", type);
+                res.end(buffer, "binary");
+            });
         });
     });
 });
