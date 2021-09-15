@@ -30,7 +30,7 @@ app.get("/png", function (req, res) {
     });
 });
 
-app.get("/", function (req, res) {
+app.get("/demo.png", function (req, res) {
     const width = 1500;
     const height = 500;
 
