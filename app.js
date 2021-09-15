@@ -74,7 +74,7 @@ app.get("/", function (req, res) {
                 }).then((result) => {
                     const text =
                         result.data.data.user.publication.posts[0].title;
-                    const path = font.getPath(text, 620, 242, 56);
+                    const path = font.getPath(text, 580, 233, 48);
                     path.fill = "#4F5720";
                     path.draw(context);
 
