@@ -5,7 +5,7 @@ const { createCanvas, loadImage } = require("canvas");
 
 const app = express();
 const port = 80;
-const fontURL = "fonts/400.ttf";
+const fontURL = "fonts/700.ttf";
 
 app.get("/svg", function (req, res) {
     opentype.load(fontURL, function (err, font) {
