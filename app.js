@@ -1,49 +1,67 @@
 const express = require("express");
-const app = express();
+const axios = require("axios");
 const opentype = require("opentype.js");
-const { createCanvas, loadImage } = require('canvas');
+const { createCanvas, loadImage } = require("canvas");
 
+const app = express();
 const port = 80;
 const fontURL = "fonts/400.ttf";
 
-const width = 1200
-const height = 630
-
-const canvas = createCanvas(width, height)
-const context = canvas.getContext('2d')
-
-context.fillStyle = '#000'
-context.fillRect(0, 0, width, height)
-
-context.font = 'bold 70pt Menlo'
-context.textAlign = 'center'
-context.textBaseline = 'top'
-context.fillStyle = '#3574d4'
-
-const text = 'Hello, World!'
-const textWidth = context.measureText(text).width
-context.fillRect(600 - textWidth / 2 - 10, 170 - 5, textWidth + 20, 120)
-context.fillStyle = '#fff'
-context.fillText(text, 600, 170)
-
-context.fillStyle = '#fff'
-context.font = 'bold 30pt Menlo'
-context.fillText('wentin.net', 600, 530)
-
 app.get("/svg", function (req, res) {
     opentype.load(fontURL, function (err, font) {
-        res.set('Content-Type', 'image/svg+xml');
+        res.set("Content-Type", "image/svg+xml");
         const path = font.getPath("Hello, World!", 0, 150, 72);
-        res.end('<svg xmlns="http://www.w3.org/2000/svg">' + path.toSVG() + '</svg>');
+        res.end(
+            '<svg xmlns="http://www.w3.org/2000/svg">' + path.toSVG() + "</svg>"
+        );
     });
 });
+
+app.get("/png", function (req, res) {
+    axios({
+        method: "get",
+        url: "https://api.figma.com/v1/images/F2Lrfylcv74vnm1sl8F6Gc?ids=0:1&format=svg",
+        headers: {
+            "X-FIGMA-TOKEN": "237290-2eebc456-0e43-4232-8634-bf38fb844b80",
+        },
+    }).then(function (response) {
+        let figmaURL = Object.values(response.data.images)[0];
+        res.send(figmaURL);
+    });
+});
+
 app.get("/", function (req, res) {
-    loadImage('images/profile.png').then(image => {
-        context.drawImage(image, 340, 515, 70, 70);
-        const buffer = canvas.toBuffer('image/png')
-        res.set('Content-Type', 'image/png');
-        res.end(buffer, 'binary');
-    })
+    const width = 1500;
+    const height = 500;
+
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext("2d");
+
+    axios({
+        method: "get",
+        url: "https://api.figma.com/v1/images/F2Lrfylcv74vnm1sl8F6Gc?ids=17:136&format=svg",
+        headers: {
+            "X-FIGMA-TOKEN": "237290-2eebc456-0e43-4232-8634-bf38fb844b80",
+        },
+    }).then(function (response) {
+        let figmaURL = Object.values(response.data.images)[0];
+        loadImage(figmaURL).then((image) => {
+            context.drawImage(image, 0, 0, 1500, 500);
+
+            context.font = "bold 56px Poppins";
+            context.textAlign = "left";
+            context.textBaseline = "top";
+
+            const text = "Hello, World!";
+            context.fillStyle = "#4F5720";
+            context.fillText(text, 620, 180);
+
+            const type = "image/png";
+            const buffer = canvas.toBuffer(type);
+            res.set("Content-Type", type);
+            res.end(buffer, "binary");
+        });
+    });
 });
 
 app.listen(process.env.PORT || port, () => {
