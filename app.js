@@ -1,11 +1,16 @@
 const express = require("express");
 const axios = require("axios");
+const fs = require("fs");
 const opentype = require("opentype.js");
-const { createCanvas, loadImage } = require("canvas");
+const { registerFont, createCanvas, loadImage } = require("canvas");
+const stream = require("stream");
+const { promisify } = require("util");
 
 const app = express();
 const port = 80;
 const fontURL = "fonts/700.ttf";
+const googleFontURL =
+    "http://fonts.gstatic.com/s/satisfy/v11/rP2Hp2yn6lkG50LoOZSCHBeHFl0.ttf";
 
 app.get("/svg", function (req, res) {
     opentype.load(fontURL, function (err, font) {
@@ -17,7 +22,7 @@ app.get("/svg", function (req, res) {
     });
 });
 
-app.get("/png", function (req, res) {
+app.get("/url", function (req, res) {
     axios({
         method: "get",
         url: "https://api.figma.com/v1/images/F2Lrfylcv74vnm1sl8F6Gc?ids=0:1&format=svg",
@@ -28,6 +33,57 @@ app.get("/png", function (req, res) {
         let figmaURL = Object.values(response.data.images)[0];
         res.send(figmaURL);
     });
+});
+
+app.get("/fonts.png", function (req, res) {
+    registerFont(fontURL, { family: "Poppins" });
+
+    const width = 1500;
+    const height = 500;
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext("2d");
+
+    context.font = "56px Poppins";
+    context.textAlign = "left";
+    context.textBaseline = "top";
+    context.fillText("Hello World", 50, 80);
+
+    const type = "image/png";
+    const buffer = canvas.toBuffer(type);
+    res.set("Content-Type", type);
+    res.end(buffer, "binary");
+});
+
+const finished = promisify(stream.finished);
+app.get("/google.png", function (req, res) {
+    const writer = fs.createWriteStream("temp/temp.ttf");
+    axios({
+        method: "get",
+        url: googleFontURL,
+        responseType: "stream",
+    })
+        .then(async (response) => {
+            response.data.pipe(writer);
+            return finished(writer);
+        })
+        .then(function () {
+            registerFont("temp/temp.ttf", { family: "Poppins" });
+
+            const width = 1500;
+            const height = 500;
+            const canvas = createCanvas(width, height);
+            const context = canvas.getContext("2d");
+
+            context.font = "56px Poppins";
+            context.textAlign = "left";
+            context.textBaseline = "top";
+            context.fillText("Hello World", 50, 80);
+
+            const type = "image/png";
+            const buffer = canvas.toBuffer(type);
+            res.set("Content-Type", type);
+            res.end(buffer, "binary");
+        });
 });
 
 app.get("/demo.png", function (req, res) {
@@ -48,7 +104,7 @@ app.get("/demo.png", function (req, res) {
         loadImage(figmaURL).then((image) => {
             context.drawImage(image, 0, 0, 1500, 500);
 
-            context.font = "bold 56px Poppins";
+            context.font = "56px Poppins";
             context.textAlign = "left";
             context.textBaseline = "top";
 
